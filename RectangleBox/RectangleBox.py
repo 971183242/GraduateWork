@@ -82,11 +82,12 @@ class RectangleBox:
         x, y = rect.getPoint()
         w = rect.getWidth()
         h = rect.getHeight()
-        if int(self.x) <= x + w and int(self.x) + int(self.width) >= x and \
-                int(self.y) <= y + h and int(self.y) + int(self.height) >= y:
+        if not ((self.x+self.width < x or self.y+self.height<y) or \
+            (x+w<self.x or y+h<self.y)) :
             return True
         else:
             return False
+
 
     #是否包含了另一个box
     def isContain(self,another):
@@ -100,9 +101,9 @@ class RectangleBox:
     #是否被包含
     #self contain another
     def isBeContained(self,another):
-        if self.x >= another.x and self.y >= another.y and \
+        if (self.x >= another.x and self.y >= another.y and \
                 self.x + self.width <= another.x + another.width and \
-                self.y + self.height <= another.y + another.height:
+                self.y + self.height <= another.y + another.height) :
             return True
         else:
             return False
@@ -132,37 +133,88 @@ class RectangleBox:
                 rects[parent].addChild(rects.index(rect))#index方法返回查找对象的索引位置，如果没有找到对象则抛出异常。
 
 
+    def isNearBy(self, rect):
+        x, y = rect.getPoint()
+        w = rect.getWidth()
+        h = rect.getHeight()
+        if ((self.y -3 < y < self.y + 3) or(y-3<self.y<y+3 ))and (self.x + self.width - x < 50 ):
+            return True
+        else:
+            return False
+
     @staticmethod
     def mergeBox(rects):
+
         result = []
-        #对矩形组进行预处理
         for rect in rects:
-            if not (rect.getParent==-1 or rect.getHeight() <= 40 or rect.getWidth() <= 40 or rect.getHeight() > 100 or rect.getWidth() > 200):
+            if rect.getParent() == -1 and rect.getWidth() > 140 and rect.getWidth() < 1000:
                 result.append(rect)
         rects = result
-        #合并矩形
+
+        # 合并矩形
+
         i = 0;
         while i < len(rects):
-            j = 0
+            j = i + 1
             while j < len(rects):
-                if i == j:  # 不与自己进行比较
-                    j = j + 1
-                    continue
-                if rects[i].isOverlap(rects[j]):
-                    temp = RectangleBox(min(rects[i].x,rects[j].x),min(rects[i].y,rects[j].y),
-                                        max(rects[i].x+rects[i].width,rects[j].x+rects[j].width),max(rects[i].y+rects[i].height,rects[j].y+rects[j].height))
-                    rects[i] == temp
+                if i < len(rects) and rects[i].height < 100 and rects[i].isNearBy(rects[j]):
+                    temp = RectangleBox(min(rects[i].x, rects[j].x), min(rects[i].y, rects[j].y),
+                                        max(rects[i].x + rects[i].width,
+                                            rects[j].x + rects[j].width - min(rects[i].x, rects[j].x)),
+                                        max(rects[i].y + rects[i].height, rects[j].y + rects[j].height) - min(
+                                            rects[i].y, rects[j].y))
+                    rects[i] = temp
                     rects.remove(rects[j])
 
+                j = j + 1
+            i = i + 1
+
+        i = 0;
+        while i < len(rects):
+            j = i + 1
+            while j < len(rects):
+                if i < len(rects) and rects[i].height < 100 and rects[i].isOverlap(rects[j]):
+                    temp = RectangleBox(min(rects[i].x, rects[j].x), min(rects[i].y, rects[j].y),
+                                        max(rects[i].x + rects[i].width,
+                                            rects[j].x + rects[j].width - min(rects[i].x, rects[j].x)),
+                                        max(rects[i].y + rects[i].height, rects[j].y + rects[j].height) - min(
+                                            rects[i].y, rects[j].y))
+                    rects[i] = temp
+                    rects.remove(rects[j])
 
                 j = j + 1
             i = i + 1
 
 
+        result = []
+        for rect in rects:
+            if rect.getParent() == -1 and (rect.getHeight()> 60 or rect.getWidth()>100) and rect.getWidth()<1000:
+                result.append(rect)
+        rects = result
 
-        #for rect in rects:
-           # if not (rect.getHeight() <= 20 or rect.getWidth() <= 10 or rect.getHeight() > 150 or rect.getWidth() > 200):
-               # result.append(rect)
+        """
+         i = 0;
+        while i < len(rects):
+            j = i + 1
+            while j < len(rects):
+                if i < len(rects) and rects[i].isNearBy(rects[j]):
+                    temp = RectangleBox(min(rects[i].x, rects[j].x), min(rects[i].y, rects[j].y),
+                                        max(rects[i].x + rects[i].width, rects[j].x + rects[j].width),
+                                        max(rects[i].y + rects[i].height, rects[j].y + rects[j].height))
+                    rects[i] == temp
+                    rects.remove(rects[j])
+
+                j = j + 1
+            i = i + 1
+        """
 
 
-        return result
+        return rects
+"""
+
+"""
+
+
+
+
+

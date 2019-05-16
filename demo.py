@@ -1,15 +1,18 @@
 #from ocr.OcrWord import OcrWord
 #from ocr.OcrLine import OcrLine
+import random
+import string
+
 from RectangleBox.RectangleBox import RectangleBox
 #from ocr.OcrProcessor import OcrProcessor
 from CVProcessor.CVProcessor import CVProcessor
 import cv2 as cv
-#from rule.OcrRule import OcrRule
-#from rule.MergeRule import MergeRule
-#from ocr.MergedWord import MergedWord
-#from structure.StructureBuilder import StructureBuilder
-#from code.CodeProcessor import CodeProcessor
-from DecisionTree import DecisionTree
+import numpy as np
+
+#CV_EVENT_LBUTTONDBLCLK
+
+
+
 
 
 #启动
@@ -17,26 +20,33 @@ from DecisionTree import DecisionTree
 def main(path):
     print(path)#打印图片路径
     image = CVProcessor.openImage(path)#打开图片
-    #CVProcessor.imshow(image)
+    CVProcessor.imshow(image)
     screen_width = image.shape[1]
     screen_height = image.shape[0]
     print(screen_width,screen_height)
 
     gray = CVProcessor.toGray(image)  # 灰度处理
+    CVProcessor.imshow(gray)
     binary = CVProcessor.getAdaptiveThreshol(gray)#二值化处理
+    CVProcessor.imshow(binary)
     blur = CVProcessor.toBlur(binary)#降噪
+    CVProcessor.imshow(blur)
     edge = CVProcessor.toCanny(blur)  # canny边缘检测
+    CVProcessor.imshow(edge)
     dilation = CVProcessor.toDilate(edge)  # 边缘膨胀
-    rects = CVProcessor.getContours(dilation, image)  # 生成矩形boxes
+    CVProcessor.imshow(dilation)
+    blur = CVProcessor.toBlur(dilation)
+    rects = CVProcessor.getContours(blur, image)  # 生成矩形boxes
     print("initial number of Boxes:",len(rects))
     #cv.imwrite("D:\\test\\save.png",image)
     RectangleBox.setBoxRelation(rects)
     print("----------------------------------------------------")
     #合并
-    rects2 = RectangleBox.mergeBox(rects)
-    print("after merge:",len(rects2))
-    rects3 = RectangleBox.mergeBox(rects2)
-    print("after merge:", len(rects3))
+
+    rects = RectangleBox.mergeBox(rects)
+    print("after merge:",len(rects))
+
+
     # 打印图片信息
     '''
     for rect in rects2:
@@ -48,14 +58,30 @@ def main(path):
 
 
     #显示图片
-    for c in rects2:
+
+    for c in rects:
         image = cv.rectangle(image, (c.getX(), c.getY()), (c.getX() + c.getWidth(), c.getY() + c.getHeight()),(0, 0, 255), 2)
-        print("y=",c.getY(),"w=", c.getWidth(), "h=", c.getHeight())
+        print("x=",c.getX() ,"y=",c.getY(),"w=", c.getWidth(), "h=", c.getHeight(),"parent=",c.getParent())
+        ran_str = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+        ran_str = 'D:\\Results\\'+ran_str +'.png'
+        roi = image[c.getY():c.getHeight()+c.getY(),c.getX():c.getX()+c.getWidth()]
+        #cv.imwrite(ran_str,roi)
     CVProcessor.imshow(image)
 
+    print("------------------------------------------------------------------------------------------")
 
+    def on_EVENT_LBUTTONDBLCLK(event, x, y, flags, param):
+        if event == cv.EVENT_LBUTTONDBLCLK:
+            xy = "%d,%d" % (x, y)
+            print("x,y=",x,y)
+            cv.circle(image, (x, y), 1, (255, 0, 0), thickness=-1)
+            cv.putText(image, xy, (x, y), cv.FONT_HERSHEY_PLAIN,
+                       1.0, (0, 0, 0), thickness=1)
+            cv.imshow("image", image)
+    cv.setMouseCallback('image', on_EVENT_LBUTTONDBLCLK)
 
 
 
 if __name__ == '__main__':
-    main("D:\\test\\test3.png")
+    main("D:\\test\\test5.png")
+

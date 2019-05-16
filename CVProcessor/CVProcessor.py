@@ -92,21 +92,13 @@ class CVProcessor:
 
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
-    img = CVProcessor.openImage("D:\\test\\test2.png")
+    img = CVProcessor.openImage("D:\\test\\test3.png")
     screen_width = img.shape[1]
     screen_height = img.shape[0]
     print(screen_width, screen_height)
     gray = CVProcessor.toGray(img)
     binary = CVProcessor.getAdaptiveThreshol(gray)
-    #gaussian = CVProcessor.toGaussian(threshol)
     edge = CVProcessor.toCanny(binary)
     dilation = CVProcessor.toDilate(edge)
     blur = CVProcessor.toBlur(dilation)
